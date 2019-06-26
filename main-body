@@ -7,11 +7,11 @@ beta1 = 3e-8; % viral infection rate
 phi = 0.33; % convert rate of healthy epithelial cells to resistant-cells
 rho = 0.1; % convert rate of resistant-cells back to epithelial cells
 s1 = 0; % the effectiveness of MUC1, acting as a physical barrier
-delta_L = 0.2; % the max clearance rate of latent-cells
+delta_L = 1; % the max clearance rate of latent-cells
 delta_I = 0.5; % the max clearance rate of infected cells
-s2 = 0; % the effectiveness of IFN to decrease the rate of latent cells to infected cells
+s2 = 0.2; % the effectiveness of IFN to decrease the rate of latent cells to infected cells
 beta2 = 20; % the rate of latent cells to infected cells
-kappa = 3.2e-2; % clear rate of infected cells by activated macrophages
+kappa = 3.2e-3; % clear rate of infected cells by activated macrophages
 q1 = 2e-5; % IFN production rate by infected cells
 q2 = 3e-2; % IFN production rate by activated macrophages
 delta_F = 0.5; % natural decay rate of IFN
@@ -35,17 +35,19 @@ mu = 0.02; % 0.02
 %% Adding Parameters
 
 s_ast = 3.8e-1; % 3.8e-3 proliferation/recruitment rate of macrophages
-k1 = 1; % shape constant
+k1 = 6; % shape constant
+k2 = 5; % shape constant
+k3 = 3; % shape constant
 gamma1 = 5e-9; % activating rate of macrophages by uptake virions
 gamma2 = 5e-8;  % 5e-8 activating rate of macrophages by inteferons
 s3 = 2; % effectiveness of MUC1 to TLR on macrophages
-delta_M = 24 * 1e-3; % 1e-3 % clear rate of macrophages
-delta_MI = 24 * 1e-3; % 24 * 1.2e-3; clear rate of activated macrophages (an indicator of all monocytes cells)
+delta_M = 24 * 1e-4; % 1e-3 % clear rate of macrophages
+delta_MA = 12 * 1e-3; % 24 * 1.2e-3; clear rate of activated macrophages (an indicator of all monocytes cells)
 q3 = 3e-2; % production rate of cytokines by activated macrophages (indicator to MUC1)
 delta_c = 0.5; % natural decay rate of cytokines
 %% Time setting 
 
-start_time = 1;
+start_time = 0;
 end_time = 7;
 number_of_report_time = (end_time - start_time) * 24 + 1;
 report_time = linspace(start_time, end_time, number_of_report_time);
@@ -63,7 +65,7 @@ V = zeros(1,len);
 B = zeros(1,len);
 A = zeros(1,len);
 M = zeros(1,len);
-MI = zeros(1,len);
+MA = zeros(1,len);
 C = zeros(1,len);
 
 T0 = 7e+7;
@@ -75,14 +77,14 @@ V0 = 1e+4;
 B0 = 0;
 A0 = 0;
 M0 = 1e+5;
-MI0 = 0;
+MA0 = 0;
 C0 = 0;
 
 T(1) = T0;
 V(1) = V0;
 M(1) = M0;
 
-init = [T0,L0,I0,F0,R0,V0,B0,A0,M0,MI0,C0]';
+init = [T0,L0,I0,F0,R0,V0,B0,A0,M0,MA0,C0]';
 
 %% odeset 
 
@@ -94,8 +96,9 @@ options = odeset('RelTol',1e-3, 'AbsTol', 1e-6);
     
 [~,Y] = ode15s(@laten, report_time, init, options, beta1, s1, beta2, phi,rho, delta_I, s2, kappa,delta_L, q1,delta_F,xi,p,c,beta_prime,...
                                               m1,m2,m3,r,mu_prime,mu,g,...
-                                              q2,s_ast,k1,gamma1,delta_M,delta_MI,...
-                                              gamma2,gamma_prime,s3, q3,delta_c);
+                                              q2,s_ast,gamma1,delta_M,delta_MA,...
+                                              gamma2,gamma_prime,s3, q3,delta_c,...
+                                              k1,k2,k3);
 
 figure(1)
 semilogy(report_time,Y(:,6)) % viral load
@@ -108,6 +111,7 @@ hold on
 plot(report_time,Y(:,2),'k')
 ylabel({'Infected cells & latent cells'})
 xlabel({'Time post infection', '(days)'})
+legend('Infected cells', 'Latent-state cells')
 
 figure(3)
 plot(report_time, Y(:,1),'k')
@@ -140,16 +144,43 @@ xlabel({'Time post infection', '(days)'})
 
 
 %% plots 2
+figure(98)
 k = 1;
-s3 = 0;
-for s1 = 1:1:4   
+for s3 = 0:1:1
+    for s1 = 0:0.2:0.3   
+    
     [~,Y] = ode15s(@laten, report_time, init, options, beta1, s1, beta2, phi,rho, delta_I, s2, kappa,delta_L, q1,delta_F,xi,p,c,beta_prime,...
                                               m1,m2,m3,r,mu_prime,mu,g,...
-                                              q2,s_ast,k1,gamma1,delta_M,delta_MI,...
-                                              gamma2,gamma_prime,s3, q3,delta_c);
-        cmap = colormap(lines(15));
+                                              q2,s_ast,gamma1,delta_M,delta_MA,...
+                                              gamma2,gamma_prime,s3, q3,delta_c,...
+                                              k1,k2,k3);
+        cmap = colormap(lines(20));
         text = ['s_{1} = ', num2str(s1),', s_{3} = ', num2str(s3)];                                  
         plot(report_time,Y(:,11),'LineWidth',0.9,'DisplayName', text,'Color',cmap(k,:)) % viral load
+        hold on
+        k = k+1; 
+    end   
+end 
+legend show
+legend('Location','Southwest')
+ylabel('Cytokines')
+xlabel({'Time post infection', '(days)'})
+hold off
+set(gca,'fontsize', 16)
+
+%% 
+figure(99)
+k = 1;
+s1 = 0;
+for s3 = 1:2:8   
+    [~,Y] = ode15s(@laten, report_time, init, options, beta1, s1, beta2, phi,rho, delta_I, s2, kappa,delta_L, q1,delta_F,xi,p,c,beta_prime,...
+                                              m1,m2,m3,r,mu_prime,mu,g,...
+                                              q2,s_ast,gamma1,delta_M,delta_MA,...
+                                              gamma2,gamma_prime,s3, q3,delta_c,...
+                                              k1,k2,k3);
+        cmap = colormap(lines(15));
+        text = ['s_{1} = ', num2str(s1),', s_{3} = ', num2str(s3)];                                  
+        plot(report_time,Y(:,9),'LineWidth',0.9,'DisplayName', text,'Color',cmap(k,:))
         hold on
         k = k+1; 
 end 
@@ -157,21 +188,3 @@ legend show
 legend('Location','Southwest')
 hold off
 
-%% 
-figure(99)
-k = 1;
-s1 = 0;
-for s3 = 1:1:4   
-    [~,Y] = ode15s(@laten, report_time, init, options, beta1, s1, beta2, phi,rho, delta_I, s2, kappa,delta_L, q1,delta_F,xi,p,c,beta_prime,...
-                                              m1,m2,m3,r,mu_prime,mu,g,...
-                                              q2,s_ast,k1,gamma1,delta_M,delta_MI,...
-                                              gamma2,gamma_prime,s3, q3,delta_c);
-        cmap = colormap(lines(15));
-        text = ['s_{1} = ', num2str(s1),', s_{3} = ', num2str(s3)];                                  
-        plot(report_time,Y(:,11),'LineWidth',0.9,'DisplayName', text,'Color',cmap(k,:)) % viral load
-        hold on
-        k = k+1; 
-end 
-legend show
-legend('Location','Southwest')
-hold off
