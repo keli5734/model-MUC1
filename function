@@ -1,21 +1,25 @@
 function y_var = laten(~, y,  beta1, s1, beta2, phi,rho, delta_I, s2, kappa,delta_L, q1,delta_F,xi,p,c,beta_prime,...
                                 m1,m2,m3,r,mu_prime,mu,g,...
-                                q2,s_ast,k1,gamma1,delta_M,delta_MI,...
-                                gamma2,gamma_prime,s3, q3,delta_c)
+                                q2,s_ast,gamma1,delta_M,delta_MA,...
+                                gamma2,gamma_prime,s3, q3,delta_c,...
+                                k1,k2,k3)
 
     y_var = zeros(11,1);
-    y_var(1) = g * (y(1) + y(5)) * (1 - (y(1) + y(5) + y(2) + y(3)) / 7e+7) - beta1/(1+s1*y(11)) * y(1) * y(6) - phi * y(1) * y(4) + rho * y(5);
-    % y_var(2) = beta1 * y(1) * y(6) - delta_I * (y(6)^2/ y(6)^2 + 5^2) * y(2) - beta2 / (1+s*y(4)) * y(2) - kappa * y(4) * y(2);
-    y_var(2) = beta1/(1+s1*y(11)) * y(1) * y(6) - beta2 / (1+s2*y(4)) * y(2) - kappa * y(10) * y(2) - delta_L * (y(6)^2/ y(6)^2 + 5^2)* y(2);
-    y_var(3) = beta2 / (1+s2*y(4)) * y(2) - delta_I * (y(6)^2/ y(6)^2 + 5^2) * y(3) - kappa * y(10) * y(3);
-    % y_var(4) = q1 * (y(3)+ y(2)) + q2 * y(10) - delta_F * y(4);
+    y_var(1) = g * (y(1) + y(5)) * (1 - (y(1) + y(5) + y(2) + y(3)) / 7e+7) - beta1* (1-s1) * y(1) * y(6) - phi * y(1) * y(4) + rho * y(5);
+    %y_var(1) = g * (y(1) + y(5)) * (1 - (y(1) + y(5) + y(2) + y(3)) / 7e+7) - beta1/(1+s1*y(11)) * y(1) * y(6) - phi * y(1) * y(4) + rho * y(5);
+    
+    y_var(2) = beta1*(1-s1) * y(1) * y(6) - beta2 / (1+s2*y(4)) * y(2) - delta_L * (y(6)^2/ y(6)^2 + k1^2)* y(2);    
+    %y_var(2) = beta1/(1+s1*y(11)) * y(1) * y(6) - beta2 / (1+s2*y(4)) * y(2) - kappa * y(10) * y(2) - delta_L * (y(6)^2/ y(6)^2 + 5^2)* y(2);
+    
+    y_var(3) = beta2 / (1+s2*y(4)) * y(2) - delta_I * (y(6)^2/ y(6)^2 + k2^2) * y(3) - kappa * y(10) * y(3);
+    %y_var(4) = q1 * (y(3)+ y(2)) + q2 * y(10) - delta_F * y(4);
     y_var(4) = q1 * (y(3)+ y(2)) + q2 * y(10) - delta_F * y(4);
     y_var(5) = phi * y(1) * y(4) - rho * y(5) - xi * y(5);
     y_var(6) = p * y(3) - c * y(6) - beta_prime * y(1) * y(6) - mu * y(6) * y(8) - gamma_prime * y(6) * y(9);
     y_var(7) = m1 * y(6)*(1 - y(7)) - m2*y(7);
     y_var(8) = m3 * y(7) - r * y(8) - mu_prime* y(6)*y(8);
-    y_var(9) = s_ast * (y(11)^2 / (y(11)^2 + k1^2)) * y(9) - gamma1/(1+s3*y(11)) * y(9) * y(6) - gamma2 * y(9)* y(4) - delta_M * y(9);
-    y_var(10) = gamma1/(1+s3*y(11)) * y(9) * y(6) + gamma2 * y(9) * y(4) - delta_MI * (y(6)^2/ y(6)^2 + 5^2) * y(10);
+    y_var(9) = s_ast * (y(11)^2 / (y(11)^2 + k3^2)) * y(9) - gamma1/(1+s3*y(11)) * y(9) * y(6) - gamma2 * y(9)* y(4) - delta_M * y(9);
+    y_var(10) = gamma1/(1+s3*y(11)) * y(9) * y(6) + gamma2 * y(9) * y(4) - delta_MA * (y(6)^2/ y(6)^2 + 5^2) * y(10);
     y_var(11) = q3 * y(10) - delta_c * y(11);
     
 end 
